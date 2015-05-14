@@ -9,140 +9,90 @@ import java.util.Scanner;
 
 public class Main {
 
+
     public static void main(String[] args) throws IOException {
-        Scanner sc = new Scanner(System.in);
-
-
-
-
-
-
-
-
-
+        Scanner userInput = new Scanner(System.in);
         System.out.println("Welcome to your OHN search engine...");
         System.out.println("I log onto any webpage you give me and I search it's sentences for your keywords");
         System.out.println("You can then save these sentences or expand the selection by typing context.");
-
-        System.out.println("Where shall we start(enter URL)?");
-        String webPageURL = sc.nextLine();
-        // DEPRECATED
+        System.out.println("Where shall we start?(enter URL)");
+        String sWebURL = userInput.nextLine();
         System.out.println("Enter your keyword:");
         System.out.println("Tip: It's best to use the root of a word for example electr would select a wide range of electricity themed words.");
-        String searchTerms = sc.nextLine();
-
-        // Update so save to different variables and arrays, and save based on packet size. 10Mb max or 1Gb max
+        String sKeyword = userInput.nextLine();
         System.out.println("What should I call the file I'm saving your selections to?");
-        String fileName = sc.nextLine() + ".txt";
-
-        // Getting the webpage
-        Document fetchedHTML = Jsoup.connect(webPageURL).get();
-        String webPage = fetchedHTML.text();
-        String fullPage = fetchedHTML.text();
-
-        PrintWriter writer = new PrintWriter(fileName, "UTF-8");/* PrintWriter to write some files*/
-        
-        int grandPage = fullPage.length();
-        int lastPeriod = webPage.lastIndexOf(". ");
-        int searchFrom = grandPage - webPage.length();
-        
-        System.out.println("grandPage: " + grandPage);
-        System.out.println("Last Period at: " + lastPeriod);
-
-        /* Ok so before we start looping and getting all confused in our flow. What we know is grandPage is an integer that is as big as the length of the fetchedHTML and that we have a String called fullPage that has the full document. We also know that by default in this program, webPage gets shorter. We need to manage the numbers of beginSentence and endSentence better. Have them point to the larger document. */
-        
+        String fileName = userInput.nextLine() + ".txt";
+        PrintWriter writer = new PrintWriter(fileName, "UTF-8");
+        Document docRaw = Jsoup.connect(sWebURL).get();
+        // sSolid is always used to build our string
+        String sSolid = docRaw.text();
+        // sShrinking is always used to move iContinueFrom pointer
+        String sShrinking = docRaw.text();
+        int iSolidLength = sSolid.length();
+        int iLastPeriod = sShrinking.lastIndexOf(". ");
+        System.out.println("The whole page is " + iSolidLength+" long.");
+        System.out.println("Last Period at: " + iLastPeriod);
+        int iContinueFrom = iSolidLength - sShrinking.length();
         while (true) {
-            /*This is extremely long I want to make it shorter*/
-            int beginSentence;
-            int wordIndex;
-            int endSentence;
-
-            String textBeforeWord;
-            String sentence;
-
-            wordIndex = fullPage.indexOf(searchTerms,searchFrom);
-            if (wordIndex == -1) {
+            int iKeywordPosition = sSolid.indexOf(sKeyword,iContinueFrom);
+            if (iKeywordPosition == -1) {
                 break;
             }
-
-            endSentence = fullPage.indexOf(". ", wordIndex);
-            if (endSentence == -1) {
-                endSentence = webPage.length();
+            int iEndSentence = sSolid.indexOf(". ", iKeywordPosition);
+            if (iEndSentence == -1) {
+                iEndSentence = sSolid.length();
             } else {
-                endSentence++;
+                iEndSentence++;
             }
-
-            textBeforeWord = fullPage.substring(0, wordIndex);
-            beginSentence = textBeforeWord.lastIndexOf(". ") + 2;
-
-            sentence = fullPage.substring(beginSentence, endSentence);
+            String sBeforePosition = sSolid.substring(0, iKeywordPosition);
+            int iStartSentence = sBeforePosition.lastIndexOf(". ") + 2;
+            String sSentence = sSolid.substring(iStartSentence, iEndSentence);
+            System.out.println(sSentence);
             System.out.println("Is this sentence interesting? [ Yes / No ] ");
-            String response = sc.nextLine();
-
-            if (response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("y")) {
+            String sResponse = userInput.nextLine();
+            if (sResponse.equalsIgnoreCase("yes") || sResponse.equalsIgnoreCase("y")) {
                 System.out.println("SAVED");
-                writer.println(sentence);
+                writer.println(sSentence);
                 writer.println();
             }
-            if (response.equalsIgnoreCase("no") || response.equalsIgnoreCase("n")) {
+            if (sResponse.equalsIgnoreCase("no") || sResponse.equalsIgnoreCase("n")) {
                 System.out.println("Deleted");
             }
-
-            if (response.equalsIgnoreCase("context")) {
-                int backtrack = beginSentence - 202;
-                int fortrack = endSentence + 198;
-
-                if ((fortrack <= grandPage) && (backtrack >= 0)) {
-                    String context;
-                    context = fullPage.substring(backtrack, fortrack);
-                    System.out.println(context);
+            if (sResponse.equalsIgnoreCase("context")) {
+                int iNewStartSentence =getNewStart(iStartSentence);
+                int iNewEndSentence = getNewEnd(iSolidLength,iEndSentence);
+                    String sContext = sSolid.substring(iNewStartSentence, iNewEndSentence);
+                    System.out.println(sContext);
                     System.out.println("Is this better now?[ Yes / No ]");
-                    response = sc.nextLine();
-
-                    if (response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("y")) {
+                    sResponse = userInput.nextLine();
+                    if (sResponse.equalsIgnoreCase("yes") || sResponse.equalsIgnoreCase("y")) {
                         System.out.println("SAVED");
-                        writer.println(context);
+                        writer.println(sContext);
                         writer.println();
                     }
-
-                    if (response.equalsIgnoreCase("no") || response.equalsIgnoreCase("n")) {
-                        System.out.println(sentence);
+                    if (sResponse.equalsIgnoreCase("no") || sResponse.equalsIgnoreCase("n")) {
+                        System.out.println(sSentence);
                         System.out.println("How about now? [ Yes / No ]");
-                        response = sc.nextLine();
-
-                        if (response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("y")) {
+                        sResponse = userInput.nextLine();
+                        if (sResponse.equalsIgnoreCase("yes") || sResponse.equalsIgnoreCase("y")) {
                             System.out.println("SAVED");
-                            writer.println(sentence);
+                            writer.println(sSentence);
                             writer.println();
                         }
-                        if (response.equalsIgnoreCase("no") || response.equalsIgnoreCase("n")) {
+                        if (sResponse.equalsIgnoreCase("no") || sResponse.equalsIgnoreCase("n")) {
                             System.out.println("Deleted");
                         }
                     }
-
-                }
-                if((fortrack > grandPage) || (backtrack < 0)){
-                    System.out.println("The is no more context to show.");
-                    System.out.println(sentence);
-                    System.out.println("Do you want to keep this sentence instead? [ Yes / No ] ");
-                    response = sc.nextLine();
-                    if (response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("y")) {
-                        System.out.println("SAVED");
-                        writer.println(sentence);
-                        writer.println();
-                    }
-                    if (response.equalsIgnoreCase("no") || response.equalsIgnoreCase("n")) {
-                        System.out.println("Deleted");
-                    }
-                }
-
             }
-            webPage=fullPage.substring(endSentence);
-            searchFrom = grandPage-webPage.length();
-
+            sShrinking = sSolid.substring(iEndSentence);
+            iContinueFrom = iSolidLength - sShrinking.length();
         }
             writer.close();
-
-
+    }
+    public static int getNewStart(int iStart){
+        return (202>iStart) ? 0:iStart-202;
+    }
+    public static int getNewEnd(int max, int iEnd){
+        return (iEnd+198>max)? max:iEnd+198;
     }
 }
