@@ -24,9 +24,9 @@ public class Main {
         String fileName = userInput.nextLine() + ".txt";
         PrintWriter writer = new PrintWriter(fileName, "UTF-8");
         Document docRaw = Jsoup.connect(sWebURL).get();
-        // sSolid is always used to build our string
+        // sSolid will ALWAYS be used to build our string
         String sSolid = docRaw.text();
-        // sShrinking is always used to move iContinueFrom pointer
+        // sShrinking is used to move the iContinueFrom pointer
         String sShrinking = docRaw.text();
         int iSolidLength = sSolid.length();
         int iLastPeriod = sShrinking.lastIndexOf(". ");
